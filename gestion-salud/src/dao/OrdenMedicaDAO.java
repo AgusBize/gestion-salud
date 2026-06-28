@@ -2,8 +2,11 @@ package dao;
 
 import conexion.ConexionDB;
 import modelo.OrdenMedica;
+
 import java.sql.Connection;
 import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.Statement;
 import java.sql.Types;
 
 public class OrdenMedicaDAO {
@@ -41,7 +44,7 @@ public class OrdenMedicaDAO {
         String sql = "INSERT INTO orden_medica(id_paciente, id_obra_social, id_turno, fecha_emision, diagnostico, practica, estado, observaciones) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
 
         try (Connection con = ConexionDB.conectar();
-             PreparedStatement ps = con.prepareStatement(sql)) {
+             PreparedStatement ps = con.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
 
             ps.setInt(1, orden.getIdPaciente());
             ps.setInt(2, orden.getIdObraSocial());
@@ -52,13 +55,20 @@ public class OrdenMedicaDAO {
                 ps.setNull(3, Types.INTEGER);
             }
 
-            ps.setString(4, orden.getFechaEmision().toString());
+            ps.setDate(4, java.sql.Date.valueOf(orden.getFechaEmision()));
             ps.setString(5, orden.getDiagnostico());
             ps.setString(6, orden.getPractica());
             ps.setString(7, orden.getEstado());
             ps.setString(8, orden.getObservaciones());
 
             ps.executeUpdate();
+
+            ResultSet rs = ps.getGeneratedKeys();
+
+            if (rs.next()) {
+                orden.setIdOrden(rs.getInt(1));
+            }
+
             System.out.println("Orden médica guardada ✔");
 
         } catch (Exception e) {

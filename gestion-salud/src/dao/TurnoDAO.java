@@ -1,51 +1,85 @@
 package dao;
 
 import conexion.ConexionDB;
-import java.sql.*;
 import modelo.Turno;
+
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.Statement;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class TurnoDAO {
 
-    public boolean existeTurno(int idPaciente, String fecha, String hora) {
-        String sql = "SELECT * FROM turno WHERE fecha = ? AND hora = ?";
-
-        try (Connection con = ConexionDB.conectar();
-             PreparedStatement ps = con.prepareStatement(sql)) {
-
-            ps.setString(1, fecha);
-            ps.setString(2, hora);
-
-            ResultSet rs = ps.executeQuery();
-            return rs.next();
-
-        } catch (Exception e) {
-            System.out.println("Error: " + e.getMessage());
-            return true;
-        }
-    }
-
     public void guardar(Turno turno) {
 
-        if (existeTurno(turno.getIdPaciente(), turno.getFecha().toString(), turno.getHora().toString())) {
-            System.out.println("❌ Ya existe un turno en ese horario");
-            return;
-        }
-
-        String sql = "INSERT INTO turno(id_paciente, fecha, hora, estado) VALUES (?, ?, ?, ?)";
+        String sql = """
+                INSERT INTO turno
+                (id_paciente, fecha, hora, estado)
+                VALUES (?, ?, ?, ?)
+                """;
 
         try (Connection con = ConexionDB.conectar();
-             PreparedStatement ps = con.prepareStatement(sql)) {
+                PreparedStatement ps = con.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
 
             ps.setInt(1, turno.getIdPaciente());
-            ps.setString(2, turno.getFecha().toString());
-            ps.setString(3, turno.getHora().toString());
+            ps.setDate(2, java.sql.Date.valueOf(turno.getFecha()));
+            ps.setTime(3, java.sql.Time.valueOf(turno.getHora()));
             ps.setString(4, turno.getEstado());
 
             ps.executeUpdate();
+
+            ResultSet rs = ps.getGeneratedKeys();
+
+            if (rs.next()) {
+                turno.setIdTurno(rs.getInt(1));
+            }
+
             System.out.println("Turno guardado ✔");
 
         } catch (Exception e) {
-            System.out.println("Error: " + e.getMessage());
+            System.out.println("Error al guardar turno: " + e.getMessage());
         }
+    }
+
+    public List<Turno> listarTurnos() {
+
+        List<Turno> turnos = new ArrayList<>();
+
+        String sql = """
+                SELECT
+                    id_turno,
+                    id_paciente,
+                    fecha,
+                    hora,
+                    estado
+                FROM turno
+                ORDER BY fecha, hora
+                """;
+
+        try (Connection con = ConexionDB.conectar();
+                PreparedStatement ps = con.prepareStatement(sql);
+                ResultSet rs = ps.executeQuery()) {
+
+            while (rs.next()) {
+
+                Turno turno = new Turno(
+                        rs.getInt("id_paciente"),
+                        rs.getDate("fecha").toLocalDate(),
+                        rs.getTime("hora").toLocalTime(),
+                        rs.getString("estado"));
+
+                turno.setIdTurno(rs.getInt("id_turno"));
+
+                turnos.add(turno);
+            }
+
+        } catch (Exception e) {
+            System.out.println("Error al listar turnos: " + e.getMessage());
+        }
+
+        return turnos;
     }
 }

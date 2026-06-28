@@ -18,8 +18,36 @@ public class Turno {
         this.estado = estado;
     }
 
-    public int getIdPaciente() { return idPaciente; }
-    public LocalDate getFecha() { return fecha; }
-    public LocalTime getHora() { return hora; }
-    public String getEstado() { return estado; }
+    public int getIdTurno() {
+        return idTurno;
+    }
+
+    public void setIdTurno(int idTurno) {
+        this.idTurno = idTurno;
+    }
+
+    public int getIdPaciente() {
+        return idPaciente;
+    }
+
+    public LocalDate getFecha() {
+        return fecha;
+    }
+
+    public LocalTime getHora() {
+        return hora;
+    }
+
+    public String getEstado() {
+        return estado;
+    }
+
+    public void mostrarInformacion() {
+        System.out.println("===== TURNO =====");
+        System.out.println("ID Turno: " + idTurno);
+        System.out.println("ID Paciente: " + idPaciente);
+        System.out.println("Fecha: " + fecha);
+        System.out.println("Hora: " + hora);
+        System.out.println("Estado: " + estado);
+    }
 }

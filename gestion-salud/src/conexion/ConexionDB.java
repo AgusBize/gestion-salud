@@ -7,7 +7,7 @@ import java.sql.DriverManager;
 public class ConexionDB {
      private static final String URL = "jdbc:mysql://localhost:3306/gestion_salud";
     private static final String USER = "root";
-    private static final String PASSWORD = ""; // dejalo vacío si no pusiste password
+    private static final String PASSWORD = ""; 
 
     public static Connection conectar() {
         try {
